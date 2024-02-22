@@ -202,9 +202,6 @@ m_out_units = m_0 * np.ones(N)
 h_out_units = h_0 * np.ones(N)
 F_out_units = F_0 * np.ones(N)
 
-V_post = []
-num_of_spikes_list = np.zeros(N)
-
 for step in range(len(TIME)):
     #print("%: ", 100*step/len(TIME))
 
@@ -282,10 +279,7 @@ for step in range(len(TIME)):
         n_old += dn
         m_old += dm
         h_old += dh
-
-        if (i == 5):
-            V_post.append(V)
-
+        
         V_out_units[i] = V
         n_out_units[i] = n_old
         m_out_units[i] = m_old
@@ -302,17 +296,7 @@ for step in range(len(TIME)):
 input_layer = np.array(F_inp_units * np.pi).reshape(10, 6)
 retrieved_result = np.array(F_out_units*np.pi).reshape(10, 6)
 
-plt.figure(figsize=(6,3))
-plt.plot(TIME, V_post, label='V_post')
-plt.plot(TIME, V_base_list, label='V_base')
-plt.legend()
-
-#print(F_inp_units)
 V = [V_inp_units_list[x][1] for x in range(len(TIME))]
-
-'''plt.plot(TIME, V, label="V_input_unit")
-plt.plot(TIME, V_base_list, label="V_base")
-plt.legend()'''
 
 fig, axes = plt.subplots(ncols=2, figsize=(8, 4))
 ax1, ax2 = axes
@@ -325,8 +309,5 @@ fig.colorbar(im1, ax=ax1)
 fig.colorbar(im2, ax=ax2)
 
 neuron_number = [x for x in range(N)]
-
-plt.figure()
-plt.plot(neuron_number, num_of_spikes_list)
 
 plt.show()
