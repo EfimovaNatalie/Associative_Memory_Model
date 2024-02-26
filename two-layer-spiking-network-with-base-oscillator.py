@@ -16,15 +16,15 @@ k_syn = 0.2
 tau_m = 0.16
 g_syn = 0.1
 
-I_input = 0.1  # input current onto base oscillator
+I_input = 0.6  # input current onto base oscillator
 V_th = 0  # threshold potential
 V_0 = -1.2  # starting membrane potential value
 w_0 = g_slow * V_0
 F_0 = 1  # starting relative phase (in radians)
 N = 60  # number of units in a single layer
 
-a = -3
-b = -1
+a = -2.5
+b = -1.5
 
 def I_fast(V):
     return (-V + np.tanh(g_fast * V))
@@ -41,7 +41,7 @@ def I_syn(V_i, V_j, s_ij):
 
 # time linspace
 t_start = 0
-t_stop = 400
+t_stop = 600
 dt = 0.1
 TIME = np.arange(t_start, t_stop, dt)
 
@@ -67,7 +67,7 @@ memorized_pattern_one = [[1, 1, -1, -1, 1, 1],  # encodes image "-1"
                          [1, 1, -1, -1, 1, 1],
                          [-1, -1, -1, -1, -1, -1]]
 
-memorized_pattern_two = [[1, -1, -1, -1, -1, 1],  # encodes image "1"
+memorized_pattern_two = [[1, -1, -1, -1, -1, 1],  # encodes image "2"
                          [-1, -1, -1, -1, -1, -1],
                          [-1, -1, 1, 1, -1, -1],
                          [1, 1, 1, 1, -1, -1],
@@ -78,27 +78,27 @@ memorized_pattern_two = [[1, -1, -1, -1, -1, 1],  # encodes image "1"
                          [-1, -1, -1, -1, -1, -1],
                          [-1, -1, -1, -1, -1, -1]]
 
-input_image_zero = [[1, -1, 1, -1, 1, 1],  # "broken" image "0"
-                    [1, -1, -1, -1, -1, 1],
-                    [1, -1, 1, 1, -1, -1],
-                    [-1, 1, -1, -1, 1, -1],
-                    [-1, 1, 1, -1, 1, -1],
-                    [-1, 1, -1, 1, -1, -1],
-                    [-1, 1, 1, 1, -1, 1],
-                    [-1, -1, 1, 1, -1, -1],
-                    [1, -1, -1, -1, -1, 1],
-                    [1, -1, 1, -1, -1, 1]]
+input_image_zero = [[1, -1, 1, -1, -1, 1],  # "broken" image "0"
+                        [1, -1, -1, -1, -1, 1],
+                        [-1, -1, 1, 1, -1, -1],
+                        [-1, 1, -1, 1, -1, -1],
+                        [-1, 1, 1, 1, 1, -1],
+                        [-1, 1, 1, 1, 1, -1],
+                        [-1, -1, 1, 1, -1, 1],
+                        [-1, -1, 1, 1, -1, -1],
+                        [1, -1, -1, -1, -1, 1],
+                        [1, -1, -1, 1, -1, 1]]
 
-input_image_one = [[1, 1, -1, -1, 1, 1],  # "broken" image "1" to be retrieved
-                   [1, -1, -1, -1, -1, 1],
-                   [1, -1, -1, -1, 1, 1],
-                   [1, 1, 1, -1, 1, 1],
-                   [1, 1, -1, -1, 1, 1],
-                   [1, 1, -1, 1, 1, 1],
-                   [1, 1, -1, -1, 1, 1],
-                   [1, 1, -1, -1, 1, 1],
-                   [1, 1, -1, -1, 1, 1],
-                   [-1, -1, -1, -1, -1, -1]]
+input_image_one = [[1, 1, -1, -1, 1, 1],  # "broken" image "-1"
+                    [1, -1, -1, -1, 1, 1],
+                    [1, -1, 1, -1, 1, 1],
+                    [1, 1, -1, -1, 1, 1],
+                    [1, 1, -1, -1, 1, 1],
+                    [1, 1, -1, -1, 1, 1],
+                    [1, 1, -1, 1, 1, 1],
+                    [1, 1, -1, -1, 1, 1],
+                    [1, 1, -1, -1, 1, 1],
+                    [-1, 1, -1, -1, -1, -1]]
 
 input_image_two = [[1, -1, 1, -1, -1, 1],  # "broken" image "2" to be retrieved
                    [1, -1, -1, -1, 1, -1],
@@ -107,7 +107,7 @@ input_image_two = [[1, -1, 1, -1, -1, 1],  # "broken" image "2" to be retrieved
                    [1, 1, 1, -1, -1, -1],
                    [1, 1, 1, -1, -1, 1],
                    [1, 1, -1, -1, 1, 1],
-                   [-1, -1, -1, 1, 1, 1],
+                   [1, -1, -1, 1, 1, 1],
                    [1, -1, -1, -1, -1, -1],
                    [-1, -1, -1, -1, 1, -1]]
 
@@ -129,10 +129,6 @@ for i in range(N):
             s_ij += memorized[k][i] * memorized[k][j]
         S[i][j] = s_ij#/N
 
-'''for i in S:
-    for j in i:
-        print(V_s(j))'''
-
 # base oscillator modeling
 V_base = V_0
 w_base = w_0
@@ -144,7 +140,6 @@ for step in range(len(TIME) - 1):
     V_base_old = V_base
     w_base_old = w_base
     dV_base = (I_fast(V_base_old) - I_input - w_base_old) * dt / tau_m
-    # print(V_base_old, tau_w(V_base_old), w_base_old)
     dw_base = (W_inf(V_base_old) - w_base_old) * dt / tau_w(V_base_old)
 
     V_base = V_base_old + dV_base
@@ -169,9 +164,6 @@ F_inp_units = F_0 * np.ones(N)
 # synaptic potentials between base oscillator and input layer initialization
 V_syn = V_s(input_img[0])
 
-#print(V_syn.reshape(10, 6), '\n')
-#print(V_s(S))
-
 # Control layer initialization
 V_out_units = V_0 * np.ones(N)
 F_out_units = F_0 * np.ones(N)
@@ -183,7 +175,7 @@ t_post_spikes = []
 F_list = []
 
 for step in range(len(TIME)):
-    #print("%: ", 100*step/len(TIME))
+    print("%: ", 100*step/len(TIME))
     V_inp_units_old = V_inp_units.copy()
     w_inp_units_old = w_inp_units.copy()
 
@@ -193,7 +185,7 @@ for step in range(len(TIME)):
         F_inp = F_inp_units[i]
         V_inp_unit_old = V_inp_units_old[i]
         w_inp_unit_old = w_inp_units_old[i]
-        dV_inp_unit = (I_fast(V_inp_unit_old) - g_syn*S_inf(V_base_list[step])*(V_inp_unit_old - V_syn[i]) - w_inp_unit_old)*dt/tau_m
+        dV_inp_unit = (I_fast(V_inp_unit_old) - I_input - g_syn*S_inf(V_base_list[step])*(V_inp_unit_old - V_syn[i]) - w_inp_unit_old)*dt/tau_m
         dw_inp_unit = (W_inf(V_inp_unit_old) - w_inp_unit_old) * dt / tau_w(V_inp_unit_old)
 
         V_inp_unit = V_inp_unit_old + dV_inp_unit
@@ -205,7 +197,7 @@ for step in range(len(TIME)):
         if V_inp_unit >= V_th and V_inp_unit_old < V_th:
             t_pre_last = max(filter(lambda x: x <= TIME[step], t_base_spikes), default=0)
             F_inp = (TIME[step] - t_pre_last)/T_base
-            F_inp_units[i] = F_inp  # *np.pi
+            F_inp_units[i] = F_inp
         else:
             F_inp_units[i] = F_inp
 
@@ -217,14 +209,14 @@ for step in range(len(TIME)):
         V_out_unit_old = V_out_units_old[i]
         w_out_unit_old = w_out_units_old[i]
 
-        if (i == 1):
+        if (i == 5):
             V_post.append(V_out_unit_old)
 
         I_out_syn = 0
         for j in range(N):
             I_out_syn += g_syn * (V_out_unit_old - V_s(S[i][j]))/(N*(1 + np.exp((teta_syn - V_inp_units_old[j])/k_syn))) #* S_inf(V_inp_units_old[j]) / N
         #print("I_out_syn: ", I_out_syn)
-        dV_out_unit = (I_fast(V_out_unit_old) + I_out_syn - w_out_unit_old) * dt / tau_m
+        dV_out_unit = (I_fast(V_out_unit_old) - I_input - I_out_syn - w_out_unit_old) * dt / tau_m
         dw_out_unit = (W_inf(V_out_unit_old) - w_out_unit_old) * dt / tau_w(V_out_unit_old)
 
         V_out_unit = V_out_unit_old + dV_out_unit
@@ -258,8 +250,8 @@ retrieved_result = np.array(F_out_units*np.pi).reshape(10, 6)
 '''plt.figure(figsize=(8, 4))
 plt.plot(TIME, V_post, label='post')
 plt.plot(TIME, V_base_list, label='base')
-plt.legend()
-plt.figure()
+plt.legend()'''
+'''plt.figure()
 plt.plot(TIME, F_list, label='phase')
 plt.legend()
 '''
