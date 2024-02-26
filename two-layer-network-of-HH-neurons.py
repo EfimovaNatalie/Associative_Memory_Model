@@ -7,11 +7,11 @@ from statistics import mean
 
 # initialization of parameters
 teta_syn = -5
-k_syn = 3
+k_syn = 10
 g_syn = 0.7
 
 a = -10
-b = 10
+b = 5
 
 I_input = 7 # input current onto base oscillator
 
@@ -168,7 +168,7 @@ input_image_two = [[1, -1, -1, -1, -1, 1],  # encodes image "2"
 memorized_1 = np.array(memorized_pattern_zero).reshape(1, 60)
 memorized_2 = np.array(memorized_pattern_one).reshape(1, 60)
 memorized_3 = np.array(memorized_pattern_two).reshape(1, 60)
-input_img = np.array(input_image_zero).reshape(1, 60)
+input_img = np.array(input_image_two).reshape(1, 60)
 
 # print(input_img.shape)
 
@@ -202,8 +202,11 @@ m_out_units = m_0 * np.ones(N)
 h_out_units = h_0 * np.ones(N)
 F_out_units = F_0 * np.ones(N)
 
+V_post = []
+num_of_spikes_list = np.zeros(N)
+
 for step in range(len(TIME)):
-    #print("%: ", 100*step/len(TIME))
+    print("%: ", 100*step/len(TIME))
 
     # input layer modeling
     V_inp_units_old = V_inp_units.copy()
@@ -227,7 +230,7 @@ for step in range(len(TIME)):
         else:
             sign = -1
         #print("I_syn: ", sign*I_syn)
-        dV = (sign*I_syn - g_K*(n_old**4)*(V_old - E_k) - g_Na * (m_old**3)*h_old*(V_old - E_Na) - g_L*(V_old - E_L))*dt/C
+        dV = (I_input - sign*I_syn - g_K*(n_old**4)*(V_old - E_k) - g_Na * (m_old**3)*h_old*(V_old - E_Na) - g_L*(V_old - E_L))*dt/C
         #print(dV)
         dn = (a_n(V_old) * (1 - n_old) - b_n(V_old) * n_old) * dt
         dm = (a_m(V_old) * (1 - m_old) - b_m(V_old) * m_old) * dt
@@ -270,7 +273,7 @@ for step in range(len(TIME)):
             else:
                 sign = -1
             I_out_syn += sign*g_syn*(V_old - V_syn)/(N*(1 + np.exp((teta_syn - V_inp_units_old[j])/k_syn)))
-        dV = (I_out_syn - g_K*(n_old**4)*(V_old - E_k) - g_Na*(m_old**3)*h_old*(V_old - E_Na) - g_L*(V_old - E_L))*dt/C
+        dV = (I_input + I_out_syn - g_K*(n_old**4)*(V_old - E_k) - g_Na*(m_old**3)*h_old*(V_old - E_Na) - g_L*(V_old - E_L))*dt/C
         dn = (a_n(V_old) * (1 - n_old) - b_n(V_old) * n_old) * dt
         dm = (a_m(V_old) * (1 - m_old) - b_m(V_old) * m_old) * dt
         dh = (a_h(V_old) * (1 - h_old) - b_h(V_old) * h_old) * dt
@@ -279,7 +282,10 @@ for step in range(len(TIME)):
         n_old += dn
         m_old += dm
         h_old += dh
-        
+
+        if (i == 5):
+            V_post.append(V)
+
         V_out_units[i] = V
         n_out_units[i] = n_old
         m_out_units[i] = m_old
@@ -296,7 +302,17 @@ for step in range(len(TIME)):
 input_layer = np.array(F_inp_units * np.pi).reshape(10, 6)
 retrieved_result = np.array(F_out_units*np.pi).reshape(10, 6)
 
+plt.figure(figsize=(6,3))
+plt.plot(TIME, V_post, label='V_post')
+plt.plot(TIME, V_base_list, label='V_base')
+plt.legend()
+
+#print(F_inp_units)
 V = [V_inp_units_list[x][1] for x in range(len(TIME))]
+
+'''plt.plot(TIME, V, label="V_input_unit")
+plt.plot(TIME, V_base_list, label="V_base")
+plt.legend()'''
 
 fig, axes = plt.subplots(ncols=2, figsize=(8, 4))
 ax1, ax2 = axes
@@ -309,5 +325,8 @@ fig.colorbar(im1, ax=ax1)
 fig.colorbar(im2, ax=ax2)
 
 neuron_number = [x for x in range(N)]
+
+plt.figure()
+plt.plot(neuron_number, num_of_spikes_list)
 
 plt.show()
