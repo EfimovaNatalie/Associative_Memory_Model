@@ -16,13 +16,13 @@ k_syn = 0.2
 tau_m = 0.16
 g_syn = 0.1
 
-I_input = 0.1 # input current onto pre oscillator
+I_input = 0.6 # input current onto pre oscillator
 V_th = 0 # threshold potential
 V_0 = -1.2 # starting membrane potential value
 w_0 = g_slow*V_0
 F_0 = 1 # starting relative phase
 
-V_syn_list = np.linspace(-4, 5, 100)
+V_syn_list = np.linspace(-4, 2, 100)
 
 def I_fast(V):
     return (-V + np.tanh(g_fast*V))
@@ -32,10 +32,6 @@ def tau_w(V):
     return tau_2 + (tau_1 - tau_2)/(1 + np.exp(-V/k_t))#/k_t))
 def S_inf(V):
     return 1/(1 + np.exp((teta_syn - V)/k_syn))
-'''def V_s(x):
-    return a*x + b'''
-def I_syn(V_i, V_j, s_ij):
-    return g_syn*S_inf(V_j)*(V_i - V_s(s_ij))
 
 # time linspace
 t_start = 0
@@ -63,6 +59,7 @@ V_pre_list.append(V_pre)
 V_post_list.append(V_post)'''
 
 F_avr_list = []
+I_syn_list = np.zeros(len(V_syn_list))
 
 V_pre = V_0
 w_pre = w_0
@@ -113,8 +110,10 @@ for i in range(len(V_syn_list)):
         V_post_old = V_post
         w_post_old = w_post
 
-        dV_post = (I_fast(V_post_old) - g_syn*(V_post_old - V_syn)/(1 + np.exp(-(V_pre_list[step] - teta_syn)/k_syn)) - w_post_old)*dt/tau_m
-        # print(V_pre_old, tau_w(V_pre_old), w_pre_old)
+        I_syn = g_syn*(V_post_old - V_syn)/(1 + np.exp(-(V_pre_list[step] - teta_syn)/k_syn))
+        if (abs(I_syn) > I_syn_list[i]):
+            I_syn_list[i] = abs(I_syn)
+        dV_post = (I_fast(V_post_old) - I_input - I_syn - w_post_old)*dt/tau_m
         dw_post = (W_inf(V_post_old) - w_post_old) * dt / tau_w(V_post_old)
 
         V_post = V_post_old + dV_post
@@ -122,8 +121,7 @@ for i in range(len(V_syn_list)):
 
         if V_post >= V_th and V_post_old < V_th:
             t_post_spikes.append(TIME[step])
-            t_pre_last = max(filter(lambda x: x <= TIME[step], t_pre_spikes),
-                             default=0)  # t_pre_spikes[num_post_spikes]#
+            t_pre_last = max(filter(lambda x: x <= TIME[step], t_pre_spikes), default=0)  # t_pre_spikes[num_post_spikes]#
             F = (TIME[step] - t_pre_last)/T_pre
             F_list.append(F)
             num_post_spikes += 1
@@ -139,9 +137,7 @@ for i in range(len(V_syn_list)):
     if len(t_post_spikes) > 2:
         periods = [t_post_spikes[i + 1] - t_post_spikes[i] for i in range(20, len(t_post_spikes) - 1)]
         T_post = sum(periods) / len(periods)
-        #print("V_syn: ", V_syn)
-        #print("T_post: ", T_post, '\n')
-    if i == 99:#(0 <= V_syn < 0.1):#(-0.4 < V_syn < -0.2):#(len(V_syn_list)-1):
+    if i == 99:
         print("nu_pre: ", 1 / T_pre)
         print("nu_post: ", 1 / T_post)
         plt.figure(figsize=(8, 8))
@@ -168,6 +164,11 @@ plt.legend()'''
 plt.figure(figsize=(8,8))
 plt.scatter(V_syn_list, F_avr_list, c='red', s=10)
 plt.xlabel(r"$V_{syn}$")
+plt.ylabel(r"$\phi$")
+
+plt.figure(figsize=(8, 4))
+plt.scatter(I_syn_list, F_avr_list, c='green', s=10)
+plt.xlabel(r"$I_{syn}$")
 plt.ylabel(r"$\phi$")
 
 plt.show()
